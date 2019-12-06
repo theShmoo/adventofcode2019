@@ -5,14 +5,10 @@ class Node(object):
         super(Node, self).__init__()
         self.children = set()
         self.name = name
-        self.num_indirect_orbits = 0
-        self.num_direct_orbits = 0
         self.parent = None
 
     def addChild(self, child):
         child.parent = self
-        child.getNumIndirectOrbits()
-        child.getNumOrbits()
         self.children.add(child)
 
     def findNode(self, name):
@@ -32,46 +28,45 @@ class Node(object):
 
     def getNumOrbits(self):
         if self.parent:
-            self.num_direct_orbits = 1
+            return 1
+        return 0
 
     def getNumIndirectOrbits(self):
         if self.parent and self.parent.parent:
-            self.num_indirect_orbits = 1 + self.parent.num_indirect_orbits
+            return 1 + self.parent.getNumIndirectOrbits()
+        return 0
 
     def getTotalNumOrbits(self):
-        t = self.num_direct_orbits + self.num_indirect_orbits
-        print(self.name + " orbits " + str(t))
+        t = self.getNumOrbits() + self.getNumIndirectOrbits()
         for c in self.children:
             t += c.getTotalNumOrbits()
         return t
 
 
 def getCOM():
-    root = None
-    free_nodes = {}
+    nodes = {}
     while True:
         line = input()
         if line == "break":
             break
         elif line:
             o = line.split(")")
-            free_nodes[o[0]] = Node(o[1])
+            center = o[0]
+            orbit = o[1]
+
+            if orbit not in nodes:
+                nodes[orbit] = Node(orbit)
+
+            if center not in nodes:
+                nodes[center] = Node(center)
+
+            nodes[center].addChild(nodes[orbit])
         else:
             break
 
-    root = Node("COM")
-    while len(free_nodes) > 0:
-        for a in tuple(free_nodes):
-            parent = root.findNode(a)
-            if parent:
-                parent.addChild(free_nodes[a])
-                del free_nodes[a]
-        print(len(free_nodes))
-
-    return root
+    return nodes["COM"]
 
 
 com = getCOM()
 print(com.getTotalNumOrbits())
-
 com.printNode(0)
