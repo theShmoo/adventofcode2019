@@ -21,10 +21,14 @@ class Node(object):
         return None
 
     def printNode(self, depth):
-        print(' ' * depth + str(self.name))
-        depth += 1
+        s = self.name + '\n'
+        indent = '|  ' * depth
+        if len(self.children) > 1:
+            depth += 1
+
         for c in self.children:
-            c.printNode(depth)
+            s += indent + c.printNode(depth)
+        return s
 
     def getNumOrbits(self):
         if self.parent:
@@ -69,4 +73,4 @@ def getCOM():
 
 com = getCOM()
 print(com.getTotalNumOrbits())
-com.printNode(0)
+print(com.printNode(0))
