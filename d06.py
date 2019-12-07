@@ -11,11 +11,11 @@ class Node(object):
         child.parent = self
         self.children.add(child)
 
-    def findNode(self, name):
+    def find(self, name):
         if self.name == name:
             return self
         for c in self.children:
-            found = c.findNode(name)
+            found = c.find(name)
             if found:
                 return found
         return None
@@ -46,6 +46,13 @@ class Node(object):
             t += c.getTotalNumOrbits()
         return t
 
+    def getParents(self):
+        parents = []
+        if self.parent:
+            parents.append(self.parent)
+            parents.extend(self.parent.getParents())
+        return parents
+
 
 def getCOM():
     nodes = {}
@@ -72,5 +79,12 @@ def getCOM():
 
 
 com = getCOM()
+you = com.find("YOU")
+santa = com.find("SAN")
+
+you_parents = set(you.getParents())
+san_parents = set(santa.getParents())
+print(len(you_parents - san_parents) + len(san_parents - you_parents))
+
 print(com.getTotalNumOrbits())
 print(com.printNode(0))
