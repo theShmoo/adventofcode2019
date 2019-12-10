@@ -50,16 +50,18 @@ position = max(relative_pos, key=lambda k: len(relative_pos[k]))
 print("station: " + str(position))
 
 visible = relative_pos[position]
+count = 0
 while len(visible) > 0:
     angles = computeAngles(position, visible)
     idx = argsort(angles)
-    for count, i in enumerate(idx):
-        print((1 + count, angles[i], visible[i]))
+    for c, i in enumerate(idx):
+        print((1 + c, visible[i]))
     count = 0
     count += len(idx)
     if count > 200:
-        print("The 200th asteroid to be vaporized is at " +
-              str(visible[idx[200]]))
+        v = visible[idx[199]]
+        print("The 200th asteroid to be vaporized is at " + str(v))
+        print(v[0] * 100 + v[1])
         break
     else:
         print("next round")
