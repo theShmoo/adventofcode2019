@@ -1,4 +1,5 @@
 import itertools
+import math
 
 class Moon(object):
     """docstring for Moon"""
@@ -9,7 +10,7 @@ class Moon(object):
         self.velo = [0, 0, 0]
 
     def applyVelocity(self):
-        for coord in range(0, 3):
+        for coord in range(3):
             self.pos[coord] += self.velo[coord]
 
     def getPot(self):
@@ -37,15 +38,25 @@ while True:
     except EOFError:
         break
 
+dim = 3
 
-print("After 0 steps:")
-for m in moons:
-    print("pos= " + str(m.pos) + " vel= " + str(m.velo))
 
-for i in range(1, 1001):
+def getHashForDimension(moons, c):
+    return tuple((m.pos[c], m.velo[c]) for m in moons)
+
+
+start = [0] * dim
+for c in range(dim):
+    start[c] = getHashForDimension(moons, c)
+
+cycle_idx = [None] * dim
+
+cycle = 0
+while None in cycle_idx:
+    cycle += 1
     # grafity combinations:
     for pair in itertools.combinations(moons, 2):
-        for coord in range(0, 3):
+        for coord in range(dim):
             pull_direction = 1
             if pair[0].pos[coord] > pair[1].pos[coord]:
                 pull_direction = -1
@@ -57,12 +68,22 @@ for i in range(1, 1001):
     for m in moons:
         m.applyVelocity()
 
-    print("After " + str(i) + " steps:")
-    total = 0
-    for m in moons:
-        # print("pos= " + str(m.pos) + " vel= " + str(m.velo))
-        p = m.getPot()
-        k = m.getKin()
-        total += p * k
-    print("Total " + str(total))
+    # idea: find cycle for every coordinate
+    # then check when cyces match
 
+    for c in range(dim):
+        if cycle_idx[c] is None:
+            pass
+            if getHashForDimension(moons, c) == start[c]:
+                cycle_idx[c] = cycle
+                print("Cycle detected in: " + str(c) + " at " + str(cycle))
+
+print(cycle_idx)
+
+
+def computeLCM(x, y):
+    return (x * y) // math.gcd(x, y)
+
+
+lcm = computeLCM(computeLCM(cycle_idx[0], cycle_idx[1]), cycle_idx[2])
+print(lcm)
