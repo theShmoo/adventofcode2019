@@ -1,46 +1,37 @@
 import intcode
 
 
-class Panel(object):
-    """docstring for Panel"""
+class Game(object):
+    """docstring for Game"""
 
     def __init__(self):
-        super(Panel, self).__init__()
-        self.panel = {(0, 0): 1}
-        self.position = (0, 0)
-        self.direction = (0, 1)
-        self.draw_mode = True
+        super(Game, self).__init__()
+        self.panel = {}
+        self.draw_mode = 'x'
+        self.next_tile = [None, None]
 
-    def turnLeft(self):
-        d = self.direction
-        self.direction = (-d[1], d[0])
-
-    def turnRight(self):
-        d = self.direction
-        self.direction = (d[1], -d[0])
-
-    def setTile(self, x):
-        if self.draw_mode:
-            self.panel[self.position] = x
-        else:
-            self.turnLeft() if x == 0 else self.turnRight()
-            self.position = (self.position[0] + self.direction[0],
-                             self.position[1] + self.direction[1])
-        self.draw_mode = not self.draw_mode
+    def setTile(self, v):
+        if self.draw_mode is 'x':
+            self.next_tile[0] = v
+            self.draw_mode = 'y'
+        elif self.draw_mode is 'y':
+            self.next_tile[1] = v
+            self.draw_mode = 't'
+        elif self.draw_mode is 't':
+            self.panel[tuple(self.next_tile)] = v
+            self.draw_mode = 'x'
 
     def getTile(self):
-        color = self.panel[self.position] if self.position in self.panel else 0
-        return color
+        # nothing to do
+        return 1
 
 
 data = [int(x) for x in input().split(',')]
-panel = Panel()
+panel = Game()
 pc = intcode.Intcode(data, panel.getTile, panel.setTile)
 pc.run()
 
-grid = list(('.' * 42 + '\n') * 6)
-for p in panel.panel:
-    if panel.panel[p] is 1:
-        grid[abs(p[1]) * 43 + p[0]] = '#'
 
-print(str(''.join(grid)))
+tiles = [p for p in panel.panel.values() if p is 2]
+
+print(len(tiles))

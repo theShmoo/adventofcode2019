@@ -9,8 +9,8 @@ class Moon(object):
         self.pos = [0, 0, 0]
         self.velo = [0, 0, 0]
 
-    def applyVelocity(self):
-        for coord in range(3):
+    def applyVelocity(self, to_compute):
+        for coord in to_compute:
             self.pos[coord] += self.velo[coord]
 
     def getPot(self):
@@ -52,11 +52,13 @@ for c in range(dim):
 cycle_idx = [None] * dim
 
 cycle = 0
+to_compute = list(range(dim))
+
 while None in cycle_idx:
     cycle += 1
     # grafity combinations:
     for pair in itertools.combinations(moons, 2):
-        for coord in range(dim):
+        for coord in to_compute:
             pull_direction = 1
             if pair[0].pos[coord] > pair[1].pos[coord]:
                 pull_direction = -1
@@ -66,17 +68,14 @@ while None in cycle_idx:
             pair[1].velo[coord] -= pull_direction
 
     for m in moons:
-        m.applyVelocity()
+        m.applyVelocity(to_compute)
 
-    # idea: find cycle for every coordinate
-    # then check when cyces match
-
-    for c in range(dim):
+    for c in to_compute:
         if cycle_idx[c] is None:
-            pass
             if getHashForDimension(moons, c) == start[c]:
                 cycle_idx[c] = cycle
                 print("Cycle detected in: " + str(c) + " at " + str(cycle))
+                to_compute.remove(c)
 
 print(cycle_idx)
 
