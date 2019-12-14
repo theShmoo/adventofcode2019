@@ -84,12 +84,14 @@ start = (limit // v)
 end = start * 2
 last_too_low = start
 while start < end:
-    print("[" + str(start) + "," + str(end) + ")")
     produced = {}
     root.produce(start, produced, {})
     if produced['ORE'] > limit:
         end = start
     else:
         last_too_low = start
-    start = last_too_low + (end - last_too_low) // 2
+    step = (end - last_too_low) // 2
+    if step == 0:
+        break
+    start = last_too_low + step
 print(last_too_low)
