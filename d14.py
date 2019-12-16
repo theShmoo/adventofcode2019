@@ -79,9 +79,9 @@ waste = {}
 produced = {}
 root.produce(1, produced, waste)
 limit = 100_000_000_0000
-v = produced["ORE"]
-start = (limit // v)
-end = start * 2
+# log search
+start = 1
+end = limit
 last_too_low = start
 while start < end:
     produced = {}
