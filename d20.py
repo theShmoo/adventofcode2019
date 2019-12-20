@@ -1,5 +1,6 @@
 import utils
 import re
+from collections import deque
 
 
 def getColumn(matrix, i):
@@ -16,25 +17,25 @@ def getLocations(data):
     for i, line in enumerate(lines):
         for d in re.finditer(r"([A-Z][A-Z])", line):
             door = d.group()
-            pos = (d.start() - 1, i)
-            if pos[0] < 0 or line[pos[0]] != '.':
-                pos = (d.start() + 3, i)
+            pos = d.start()
+            if pos == 0 or line[pos - 1] != '.':
+                pos += 1
             if door in doors:
-                doors[door].append(pos)
+                doors[door].append((pos, i))
             else:
-                doors[door] = [pos]
+                doors[door] = [(pos, i)]
 
     columns = [getColumn(lines, i) for i in range(width)]
     for i, column in enumerate(columns):
         for d in re.finditer(r"([A-Z][A-Z])", column):
             door = d.group()
-            pos = (i, d.start() - 1)
-            if pos[1] < 0 or column[pos[1]] != '.':
-                pos = (i, d.start() + 3)
+            pos = d.start()
+            if pos == 0 or column[pos - 1] != '.':
+                pos += 1
             if door in doors:
-                doors[door].append(pos)
+                doors[door].append((i, pos))
             else:
-                doors[door] = [pos]
+                doors[door] = [(i, pos)]
     return doors
 
 
@@ -46,7 +47,7 @@ def getGraph(data, ports):
 
     for y in range(1, height - 1):
         for x in range(1, width - 1):
-            if lines[y][x] == '.':
+            if lines[y][x] not in (' ', '#'):
                 east = (x + 1, y)
                 west = (x - 1, y)
                 north = (x, y - 1)
@@ -77,23 +78,18 @@ def getGraph(data, ports):
     return graph
 
 
-def findShortestPath(graph, start, end, path=[]):
-    path = path + [start]
-    if start == end:
-        return path
-
-    if start not in graph:
-        return None
-
-    shortest = None
-    for neighbour in graph[start]:
-        if neighbour not in path:
-            newpath = findShortestPath(graph, neighbour, end, path)
-            if newpath:
-                if not shortest or len(newpath) < len(shortest):
-                    shortest = newpath
-
-    return shortest
+def findShortestPath(graph, start, end):
+    dist = {start: [start]}
+    q = deque()
+    q.append(start)
+    while len(q):
+        at = q.popleft()
+        for n in graph[at]:
+            if n not in dist:
+                dist[n] = dist[at] + [n]
+                q.append(n)
+    print(dist[end])
+    return dist.get(end)
 
 
 data = utils.get_input(2019, 20)
@@ -107,9 +103,9 @@ for v in doors.values():
         ports[v[1]] = v[0]
 
 graph = getGraph(data, ports)
+print(goal)
 print(graph[goal])
-print(doors["PC"])
-print(doors["ZZ"])
+graph[graph[goal][0]] = [goal]
 
 path = findShortestPath(graph, start, goal)
 print(len(path))
