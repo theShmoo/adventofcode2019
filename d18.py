@@ -18,8 +18,8 @@ def getLocations(data):
     entrance = data.find("@")
 
     return (
-            [v for _,v in sorted(keys.items())],
-            [v for _,v in sorted(doors.items())],
+            [v for _, v in sorted(keys.items())],
+            [v for _, v in sorted(doors.items())],
             entrance)
 
 
@@ -54,7 +54,7 @@ def getGraph(data):
     return graph
 
 
-def find_shortest_path(graph, start, end, path=[]):
+def find_shortest_path(graph, doors, start, end, path=[]):
     path = path + [start]
     if start == end:
         return path
@@ -65,7 +65,7 @@ def find_shortest_path(graph, start, end, path=[]):
     shortest = None
     for neighbour in graph[start]:
         if neighbour not in path:
-            newpath = find_shortest_path(graph, neighbour, end, path)
+            newpath = find_shortest_path(graph, doors, neighbour, end, path)
             if newpath:
                 if not shortest or len(newpath) < len(shortest):
                     shortest = newpath
@@ -76,16 +76,18 @@ def find_shortest_path(graph, start, end, path=[]):
 data = utils.get_input(2019, 18)
 print(data)
 (keys, doors, entrance) = getLocations(data)
-print((keys, doors, entrance))
 graph = getGraph(data)
 
 start = entrance
+# keys are interesting nodes
+# so we have to find the route from every key to every reachable key
+
 result = []
 for p in keys:
     sum = 0
     start = entrance
     for end in p:
-        path = find_shortest_path(graph, start, end)
+        path = find_shortest_path(graph, doors, start, end)
         if path is not None:
             sum += len(path)
         start = end
