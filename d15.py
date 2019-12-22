@@ -1,40 +1,37 @@
 import intcode
+import utils
+
+
+def turn(direction):
+    return (direction[1], -direction[0])
+
+
+def calcNextPos(position, direction):
+    return (position[0] + direction[0], position[1] + direction[1])
 
 
 class Droid(object):
     """docstring for Droid"""
 
-    def __init__(self):
+    def __init__(self, grid, data, pos):
         super(Droid, self).__init__()
-        self.start_pos = (21, 15)
-        self.grid = {}
-        self.grid[self.start_pos] = 3
-        self.pos = self.start_pos
-        self.next_dir = (0, 1)
-        self.next_pos = self.next_dir
-        self.current_path = []
-        self.found = False
-        self.best = 395
-
-    def turn(self):
-        self.next_dir = (self.next_dir[1], -self.next_dir[0])
-
-    def calcNextPos(self):
-        return (self.pos[0] + self.next_dir[0],
-                self.pos[1] + self.next_dir[1])
+        self.pc = intcode.Intcode(data, self.getInput, self.setOutput)
+        self.grid = grid
+        self.pos = pos
+        self.next_pos = None
 
     def getNextPos(self):
         i = 0
-        self.next_dir = (0, 1)
+        next_dir = (0, 1)
         poss = []
         while i < 4:
-            next_pos = self.calcNextPos()
+            next_pos = self.calcNextPos(pos, next_dir)
             if next_pos in self.grid:
                 if self.grid[next_pos] == 1:
                     poss.append((next_pos, i))
             elif self.current_length + 1 < self.best:
                 break
-            self.turn()
+            next_dir = turn(next_dir)
             next_pos = self.calcNextPos()
             i += 1
 
@@ -46,27 +43,8 @@ class Droid(object):
             self.grid[self.pos] = 4
             return poss[0]
 
-    def peek(self):
-        return self.getNextPos() in self.grid
-
-    def printGrid(self):
-        grid = list((' ' * 50 + '\n') * 50)
-        for p in self.grid:
-            c = '.'
-            if self.grid[p] == 0:
-                c = '#'
-            elif self.grid[p] == 1:
-                c = '.'
-            elif self.grid[p] == 2:
-                c = 'X'
-            elif self.grid[p] == 3:
-                c = 'D'
-            elif self.grid[p] == 4:
-                c = 'H'
-            grid[p[1] * 51 + p[0]] = c
-        print(str(''.join(grid)))
-
     def setOutput(self, v):
+        self.printGrid()
         if v == 0:
             # hit wall
             self.grid[self.next_pos] = 0
@@ -79,10 +57,8 @@ class Droid(object):
             # found oxygen system
             self.grid[self.next_pos] = 2
             self.pos = self.next_pos
-            self.found = True
             self.printGrid()
             print("found")
-            print(self.current_length)
 
     def getInput(self):
         if self.found:
@@ -101,7 +77,25 @@ class Droid(object):
         return 0
 
 
-data = [int(x) for x in input().split(',')]
-panel = Droid()
-pc = intcode.Intcode(data, panel.getInput, panel.setOutput)
-pc.run()
+def printGrid(grid):
+    s = list((' ' * 50 + '\n') * 50)
+    for p in grid:
+        c = '.'
+        if grid[p] == 0:
+            c = '#'
+        elif grid[p] == 1:
+            c = '.'
+        elif grid[p] == 2:
+            c = 'X'
+        elif grid[p] == 3:
+            c = 'D'
+        elif grid[p] == 4:
+            c = 'H'
+        s[p[1] * 51 + p[0]] = c
+    print(str(''.join(s)))
+
+
+data = [int(x) for x in utils.get_input(2019, 15)[:-1].split(',')]
+grid = {}
+droid = Droid(grid, data, (0, 0))
+droid.pc.run()
