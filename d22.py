@@ -1,54 +1,76 @@
 import utils
 import re
-from itertools import cycle
 
 
-def deal_into_new_stack(deck):
-    deck.reverse()
-    return deck
+class Shuffle(object):
+
+    def __init__(self, num_cards, factor, offset):
+        super(Shuffle, self).__init__()
+        self.num_cards = num_cards
+        self.factor = ((factor % num_cards) + num_cards) % num_cards
+        self.offset = ((offset % num_cards) + num_cards) % num_cards
+
+    def apply(self, shuffle):
+        self.factor = (self.factor * shuffle.factor) % self.num_cards
+        self.offset = ((shuffle.factor * self.offset) % self.num_cards) + shuffle.offset
+
+    def get_card_pos(self, card):
+        return (((card * self.factor) % self.num_cards) + self.offset) % num_cards
 
 
-def deal_with_increment(deck, increment):
-    deck_size = len(deck)
-    steps = range(0, deck_size * increment, increment)
-    positions = [i % deck_size for i in steps]
-    new_deck = [0] * deck_size
-    for i in range(deck_size):
-        new_deck[positions[i]] = deck[i]
-    return new_deck
+def cut(num_cards, offset):
+    return Shuffle(num_cards, 1, -offset)
 
 
-def cut(deck, cut):
-    return deck[cut:] + deck[:cut]
+def deal_increment(num_cards, factor):
+    return Shuffle(num_cards, factor, 0)
 
 
-data = utils.get_input(2019, 22)[:-1]
-lines = data.split('\n')
-factory_order = range(0, 119315717514047)
-deck = list(factory_order)
+def new_stack(num_cards):
+    return Shuffle(num_cards, -1, -1)
 
-re_deal_inc = re.compile(r"deal with increment ([0-9]+)")
-re_deal_new = re.compile(r"deal into new stack")
-re_cut = re.compile(r"cut (-?[0-9]+)")
 
-for line in lines:
-    m = re.match(re_deal_new, line)
-    if m:
-        deck = deal_into_new_stack(deck)
-        continue
+def apply_input(num_cards):
+    result = Shuffle(num_cards, 1, 0)
 
-    m = re.match(re_deal_inc, line)
-    if m:
-        inc = int(m.group(1))
-        deck = deal_with_increment(deck, inc)
-        continue
+    re_deal_inc = re.compile(r"deal with increment ([0-9]+)")
+    re_deal_new = re.compile(r"deal into new stack")
+    re_cut = re.compile(r"cut (-?[0-9]+)")
 
-    m = re.match(re_cut, line)
-    if m:
-        c = int(m.group(1))
-        deck = cut(deck, c)
-        continue
+    data = utils.get_input(2019, 22)[:-1]
+    lines = data.split('\n')
+    for line in lines:
+        m = re.match(re_deal_new, line)
+        if m:
+            result.apply(new_stack(num_cards))
+            continue
 
-    print(f"Error at line: {line}")
+        m = re.match(re_deal_inc, line)
+        if m:
+            inc = int(m.group(1))
+            result.apply(deal_increment(num_cards, inc))
+            continue
 
-print(f"Part 1: The position of card 2019 is {deck.index(2020)}")
+        m = re.match(re_cut, line)
+        if m:
+            c = int(m.group(1))
+            result.apply(cut(num_cards, c))
+            continue
+
+        print(f"Error at line: {line}")
+    return result
+
+
+num_cards = 10007
+shuffle = apply_input(num_cards)
+print(f"Part 1: {shuffle.get_card_pos(2019)}")
+
+
+num_cards = 119315717514047
+shuffle = apply_input(num_cards)
+repeats = 101741582076661
+n = 1
+while n <= repeats:
+    n *= 2
+    shuffle.apply(shuffle)
+print(f"Part 2: {shuffle.get_card_pos(2020)}")
